@@ -3,46 +3,53 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>친구 낚시 🎣</title>
+<title>친구 우물 낚시 🪣</title>
 <style>
   :root{
-    --bg:#061428; --panel:#0c223f; --accent:#5ee0ff; --gold:#ffd166;
-    --text:#eaf6ff; --dim:#7fa3c4;
+    --bg:#080b16; --panel:#121a2e; --accent:#5ee0ff; --gold:#ffd166;
+    --text:#eaf6ff; --dim:#7fa3c4; --release:#8fd0ff; --keep:#ffb454;
   }
   *{box-sizing:border-box;}
   html,body{ margin:0; padding:0; background:var(--bg); color:var(--text);
     font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif; min-height:100vh; }
   #app{ max-width:900px; margin:0 auto; padding:16px; }
   header{ text-align:center; padding:10px 0; }
-  header h1{ margin:0 0 6px; font-size:24px;
+  header h1{ margin:0 0 6px; font-size:23px;
     background:linear-gradient(90deg,var(--accent),var(--gold));
     -webkit-background-clip:text; background-clip:text; color:transparent; }
   header p{ margin:0; color:var(--dim); font-size:13px; }
-  .stage{ position:relative; width:100%; aspect-ratio:4/3; max-height:72vh;
-    background:#000; border-radius:16px; overflow:hidden; border:1px solid #133a5e; margin:14px auto 0; }
+  .stage{ position:relative; width:100%; aspect-ratio:4/3.4; max-height:74vh;
+    background:radial-gradient(ellipse at 50% 30%, #0e1730, #05070f);
+    border-radius:16px; overflow:hidden; border:1px solid #17233d; margin:14px auto 0; }
   #video{ display:none; }
   #game{ position:absolute; inset:0; width:100%; height:100%; }
-  #camPreview{ position:absolute; bottom:10px; right:10px; width:110px; height:82px;
+  #camPreview{ position:absolute; bottom:10px; right:10px; width:100px; height:76px;
     border-radius:10px; overflow:hidden; border:2px solid var(--accent); opacity:.9;
-    box-shadow:0 0 12px rgba(94,224,255,.4); }
+    box-shadow:0 0 12px rgba(94,224,255,.4); z-index:5; }
   #camPreview video{ display:block; width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
   #hud{ position:absolute; top:10px; left:10px; right:10px; display:flex; justify-content:space-between;
-    align-items:center; font-size:14px; font-weight:700; pointer-events:none; text-shadow:0 1px 4px rgba(0,0,0,.6); }
-  #hud .chip{ background:rgba(6,20,40,.55); padding:6px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.15); }
+    align-items:center; font-size:13px; font-weight:700; pointer-events:none; text-shadow:0 1px 4px rgba(0,0,0,.6); z-index:5; }
+  #hud .chip{ background:rgba(6,20,40,.55); padding:6px 11px; border-radius:999px; border:1px solid rgba(255,255,255,.15); }
   #overlayMsg{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; background:rgba(6,20,40,.78); gap:14px; padding:20px; }
-  #overlayMsg h2{ margin:0; font-size:22px; }
-  #overlayMsg p{ margin:0; color:var(--dim); font-size:14px; max-width:360px; }
+    text-align:center; background:rgba(6,20,40,.82); gap:14px; padding:20px; z-index:10; }
+  #overlayMsg h2{ margin:0; font-size:21px; }
+  #overlayMsg p{ margin:0; color:var(--dim); font-size:13px; max-width:360px; }
   .btn{ background:linear-gradient(90deg,var(--accent),var(--gold)); color:#06172b; font-weight:800;
     border:none; padding:11px 22px; border-radius:12px; font-size:15px; cursor:pointer; }
+  #choiceRow{ position:absolute; left:0; right:0; bottom:18px; display:none; justify-content:center; gap:14px; z-index:8; }
+  #choiceRow button{ border:none; border-radius:14px; padding:12px 20px; font-size:14px; font-weight:800; cursor:pointer; }
+  #releaseBtn{ background:rgba(143,208,255,.15); color:var(--release); border:2px solid var(--release) !important; }
+  #keepBtn{ background:rgba(255,180,84,.18); color:var(--keep); border:2px solid var(--keep) !important; }
   #status{ margin-top:10px; text-align:center; font-size:13px; color:var(--dim); min-height:18px; }
+  #collectionRow{ margin-top:8px; display:flex; gap:6px; justify-content:center; flex-wrap:wrap; min-height:30px; }
+  #collectionRow img{ width:28px; height:28px; border-radius:50%; object-fit:cover; border:1.5px solid var(--gold); }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <h1>🎣 친구 낚시</h1>
-    <p>검지 손가락으로 친구들을 노렸다가, 물면(!) 엄지-검지를 재빨리 핀치해서 낚아채세요</p>
+    <h1>🪣 친구 우물 낚시</h1>
+    <p>줄이 파르르 떨리면(입질!) 손을 위로 확 당겨서 챔질하세요. 낚이면 스와이프(또는 버튼)로 놓아주거나 담아두세요.</p>
   </header>
 
   <div class="stage" id="stage">
@@ -51,18 +58,25 @@
     <div id="camPreview"><video id="miniVideo" playsinline muted></video></div>
 
     <div id="hud" style="display:none;">
-      <span class="chip">🎣 <span id="scoreVal">0</span></span>
-      <span class="chip">⏱ <span id="timeVal">60</span>초</span>
+      <span class="chip">🧺 담음 <span id="keepVal">0</span></span>
+      <span class="chip">⏱ <span id="timeVal">90</span>초</span>
+      <span class="chip">↩️ 놓아줌 <span id="releaseVal">0</span></span>
+    </div>
+
+    <div id="choiceRow">
+      <button id="releaseBtn">◀ 놓아주기</button>
+      <button id="keepBtn">담아두기 ▶</button>
     </div>
 
     <div id="overlayMsg">
-      <h2>카메라를 켜고 낚시를 시작해봐</h2>
-      <p>손이 화면에 잘 보이게 카메라를 향해주세요. 검지 끝이 낚싯바늘이 돼요.</p>
+      <h2>우물에 손짓으로 낚시를 드리워봐</h2>
+      <p>카메라를 켜고, 줄이 떨릴 때 손을 위로 확 당기는 동작(챔질)을 해보세요.</p>
       <button class="btn" id="startBtn">카메라 켜고 시작</button>
     </div>
   </div>
 
   <div id="status">카메라를 켜면 안내가 여기 표시돼요.</div>
+  <div id="collectionRow"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
@@ -90,8 +104,11 @@ const FRIEND_IMAGES = [
   const statusEl = document.getElementById('status');
   const overlayMsg = document.getElementById('overlayMsg');
   const hud = document.getElementById('hud');
-  const scoreVal = document.getElementById('scoreVal');
+  const keepVal = document.getElementById('keepVal');
+  const releaseVal = document.getElementById('releaseVal');
   const timeVal = document.getElementById('timeVal');
+  const choiceRow = document.getElementById('choiceRow');
+  const collectionRow = document.getElementById('collectionRow');
 
   const friendImgs = FRIEND_IMAGES.map(src=>{ const im = new Image(); im.src = src; return im; });
 
@@ -100,70 +117,67 @@ const FRIEND_IMAGES = [
   window.addEventListener('resize', resize);
   function mx(x){ return 1-x; }
 
-  // ---------- 오디오 (합성 효과음) ----------
-  let audioCtx = null;
+  // ---------- 오디오 ----------
+  let audioCtx=null;
   function ensureAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-  function playCatchSound(special){
-    ensureAudio();
-    const now = audioCtx.currentTime;
-    const notes = special ? [880,1108,1318,1760] : [660,880,1108];
-    notes.forEach((freq,i)=>{
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.0001, now + i*0.07);
-      gain.gain.exponentialRampToValueAtTime(0.25, now + i*0.07 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + i*0.07 + 0.25);
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(now + i*0.07);
-      osc.stop(now + i*0.07 + 0.3);
-    });
-  }
-  function playMissSound(){
-    ensureAudio();
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(300, now);
-    osc.frequency.exponentialRampToValueAtTime(120, now+0.25);
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now+0.25);
+  function tone(freq, t0, dur, type='sine', vol=0.22){
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.type=type; osc.frequency.value=freq;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
     osc.connect(gain).connect(audioCtx.destination);
-    osc.start(now); osc.stop(now+0.3);
+    osc.start(t0); osc.stop(t0+dur+0.05);
   }
+  function playBiteSound(){ ensureAudio(); const now=audioCtx.currentTime; tone(200,now,0.08,'square',0.12); tone(240,now+0.1,0.08,'square',0.12); }
+  function playHookSound(){ ensureAudio(); const now=audioCtx.currentTime; [520,780,1040].forEach((f,i)=>tone(f, now+i*0.06, 0.18,'sine',0.2)); }
+  function playTugSound(){ ensureAudio(); const now=audioCtx.currentTime; tone(140, now, 0.12, 'square', 0.18); }
+  function playImpactSound(){ ensureAudio(); const now=audioCtx.currentTime; [440,660,880,1174].forEach((f,i)=>tone(f, now+i*0.05, 0.22,'sine',0.24)); tone(90, now, 0.2, 'triangle', 0.2); }
+  function playMissSound(){ ensureAudio(); const now=audioCtx.currentTime;
+    const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+    osc.type='sawtooth'; osc.frequency.setValueAtTime(280,now); osc.frequency.exponentialRampToValueAtTime(110,now+0.3);
+    gain.gain.setValueAtTime(0.15,now); gain.gain.exponentialRampToValueAtTime(0.0001,now+0.3);
+    osc.connect(gain).connect(audioCtx.destination); osc.start(now); osc.stop(now+0.32);
+  }
+  function playKeepSound(){ ensureAudio(); const now=audioCtx.currentTime; [660,880,1108,1318].forEach((f,i)=>tone(f, now+i*0.06, 0.2,'sine',0.22)); }
+  function playReleaseSound(){ ensureAudio(); const now=audioCtx.currentTime; [700,500,350].forEach((f,i)=>tone(f, now+i*0.07, 0.15,'sine',0.15)); }
 
-  // ---------- 게임 상태 ----------
-  let score=0, timeLeft=60, running=false;
-  let fishes=[], hook={x:.5,y:.5}, activeBite=null, lastPinch=false;
-  let popups=[]; // {x,y,life,text,color}
-  let halos=[]; // {x,y,life,special}
-  let timerId=null, nextFishId=1;
+  // ---------- 상태 ----------
+  let keepCount=0, releaseCount=0, timeLeft=90, running=false, roundEnding=false;
+  let timerId=null;
+  let gameState='idle'; // idle | biting | revealing | choosing
+  let nextBiteAt=0, biteStart=0;
+  const BITE_WINDOW=1700;
+  let bobberShakeSeed=0;
+  let wristHist=[]; // for pull & swipe gestures
+  let handVisible=false, currentWrist={x:.5,y:.5};
 
-  function waterTop(){ return H*0.22; }
+  let revealPhase = 'grow'; // grow | impact | done
+  let growStart = 0, impactStart = 0;
+  const GROW_DURATION = 1300, IMPACT_DURATION = 260;
+  const TOTAL_TURNS = 3;
+  let currentResultIdx = 0;
+  let popups = [];
+  let choiceResolved = true;
 
-  function spawnFish(){
-    const special = Math.random() < 0.12;
-    const y = waterTop() + Math.random()*(H-waterTop()-40) + 20;
-    const dir = Math.random()<0.5 ? 1 : -1;
-    const baseSpeed = 0.6 + Math.min(score,20)*0.03;
-    fishes.push({
-      id: nextFishId++,
-      x: dir===1 ? -40 : W+40,
-      y, dir,
-      speed: (baseSpeed + Math.random()*0.6) * dir,
-      size: 34,
-      imgIdx: Math.floor(Math.random()*friendImgs.length),
-      special,
-      state:'swim'
-    });
+  function vibrate(pattern){ if(navigator.vibrate){ try{ navigator.vibrate(pattern); }catch(e){} } }
+  function easeOutCubic(t){ return 1-Math.pow(1-t,3); }
+  function easeOutBack(t){ const c1=1.70158, c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); }
+
+  function wellGeom(){
+    const cx = W/2, cy = H*0.56;
+    const r = Math.min(W,H*1.1)*0.36;
+    return {cx,cy,r};
   }
 
   function resetGame(){
-    score=0; timeLeft=60; fishes=[]; activeBite=null; popups=[]; halos=[];
-    scoreVal.textContent='0'; timeVal.textContent='60';
-    for(let i=0;i<4;i++) spawnFish();
+    keepCount=0; releaseCount=0; timeLeft=90; roundEnding=false;
+    keepVal.textContent='0'; releaseVal.textContent='0'; timeVal.textContent='90';
+    collectionRow.innerHTML='';
+    gameState='idle';
+    nextBiteAt = performance.now() + 1200;
+    choiceRow.style.display='none';
+    popups = [];
   }
 
   function startRound(){
@@ -171,16 +185,16 @@ const FRIEND_IMAGES = [
     hud.style.display='flex'; overlayMsg.style.display='none';
     clearInterval(timerId);
     timerId = setInterval(()=>{
-      timeLeft--; timeVal.textContent=timeLeft;
-      if(timeLeft<=0) endRound();
+      timeLeft--; timeVal.textContent = Math.max(0,timeLeft);
+      if(timeLeft<=0) roundEnding = true;
     },1000);
   }
 
   function endRound(){
     running=false; clearInterval(timerId);
     overlayMsg.innerHTML = `
-      <h2>🎣 종료! 이번 판 ${score}명</h2>
-      <p>다시 도전해서 기록을 깨보자.</p>
+      <h2>🪣 종료! 담아둔 친구 ${keepCount}명</h2>
+      <p>놓아준 친구 ${releaseCount}명. 다시 도전해볼까?</p>
       <button class="btn" id="restartBtn">다시 시작</button>
     `;
     overlayMsg.style.display='flex';
@@ -193,7 +207,7 @@ const FRIEND_IMAGES = [
       video.srcObject = stream; miniVideo.srcObject = stream;
       await video.play(); await miniVideo.play();
       resize();
-      statusEl.textContent = '카메라 연결됨! 손을 비춰서 친구를 노려봐.';
+      statusEl.textContent = '카메라 연결됨! 줄이 떨릴 때까지 기다려봐.';
       startHandTracking();
       startRound();
     }catch(err){
@@ -212,160 +226,252 @@ const FRIEND_IMAGES = [
     camera.start();
   }
 
-  let handVisible=false;
   function onResults(results){
     const hasHand = results.multiHandLandmarks && results.multiHandLandmarks.length>0;
     handVisible = hasHand;
     if(!hasHand) return;
     const lm = results.multiHandLandmarks[0];
-    const indexTip = lm[8], thumbTip = lm[4];
-    hook.x = mx(indexTip.x); hook.y = indexTip.y;
-    const dx = mx(thumbTip.x)-mx(indexTip.x);
-    const dy = thumbTip.y-indexTip.y;
-    const dist = Math.sqrt(dx*dx+dy*dy);
-    const pinchedNow = dist < 0.06;
-    if(pinchedNow && !lastPinch) tryCatch();
-    lastPinch = pinchedNow;
-  }
+    const wrist = lm[0];
+    currentWrist = { x: mx(wrist.x), y: wrist.y };
+    const now = performance.now();
+    wristHist.push({x:currentWrist.x, y:currentWrist.y, t:now});
+    wristHist = wristHist.filter(p => now-p.t < 450);
 
-  function tryCatch(){
-    if(!activeBite) return;
-    const fish = fishes.find(f=>f.id===activeBite.fishId);
-    if(!fish || fish.state!=='biting') return;
-    const elapsed = performance.now() - activeBite.startTime;
-    if(elapsed <= activeBite.window){
-      fish.state='caught';
-      const gain = fish.special ? 3 : 1;
-      score += gain; scoreVal.textContent = score;
-      popups.push({x:fish.x,y:fish.y,life:1,text:(fish.special?`✨ +${gain}`:`+${gain}`)});
-      halos.push({x:fish.x,y:fish.y,life:1,special:fish.special});
-      playCatchSound(fish.special);
-      statusEl.textContent = fish.special ? '✨ 반짝 찬스 성공! 반응 최고!' : '🎣 낚시 성공!';
-      activeBite=null;
-      setTimeout(()=>{ fishes = fishes.filter(f=>f.id!==fish.id); spawnFish(); }, 220);
+    if(gameState==='biting'){
+      checkPullGesture(now);
+    } else if(gameState==='choosing'){
+      checkSwipeChoice(now);
     }
   }
 
+  let lastPullCheck=0;
+  function checkPullGesture(now){
+    if(wristHist.length<2) return;
+    const first = wristHist[0];
+    const dy = first.y - currentWrist.y; // 양수면 위로 이동(당김)
+    if(dy > 0.13){
+      hookSuccess();
+    }
+  }
+
+  let lastSwipeCheck=0;
+  function checkSwipeChoice(now){
+    if(choiceResolved) return;
+    if(wristHist.length<2) return;
+    if(now - lastSwipeCheck < 500) return;
+    const first = wristHist[0];
+    const dx = currentWrist.x - first.x;
+    if(dx > 0.16){ lastSwipeCheck=now; resolveChoice(true); }
+    else if(dx < -0.16){ lastSwipeCheck=now; resolveChoice(false); }
+  }
+
+  function hookSuccess(){
+    vibrate([25,35,70]);
+    playTugSound();
+    gameState='revealing';
+    revealPhase='grow';
+    growStart = performance.now();
+    currentResultIdx = Math.floor(Math.random()*friendImgs.length);
+    statusEl.textContent = '손맛 좋다... 뭐가 올라오는 거지?!';
+  }
+
+  function resolveChoice(keep){
+    if(choiceResolved) return;
+    choiceResolved = true;
+    choiceRow.style.display='none';
+    if(keep){
+      keepCount++; keepVal.textContent=keepCount;
+      playKeepSound();
+      statusEl.textContent = '🧺 담았다!';
+      popups.push({x:W/2,y:H*0.3,life:1,text:'담았다! +1'});
+      const im = document.createElement('img');
+      im.src = FRIEND_IMAGES[currentResultIdx];
+      collectionRow.appendChild(im);
+    } else {
+      releaseCount++; releaseVal.textContent=releaseCount;
+      playReleaseSound();
+      statusEl.textContent = '↩️ 다시 놓아줬다.';
+      popups.push({x:W/2,y:H*0.3,life:1,text:'놓아줬다'});
+    }
+    gameState='idle';
+    nextBiteAt = performance.now() + 1200 + Math.random()*1800;
+  }
+
+  document.getElementById('releaseBtn').addEventListener('click', ()=>resolveChoice(false));
+  document.getElementById('keepBtn').addEventListener('click', ()=>resolveChoice(true));
+
+  // ---------- 업데이트 ----------
   function update(dt){
     if(!running) return;
-    fishes.forEach(f=>{ if(f.state==='swim'||f.state==='biting') f.x += f.speed*dt*60; });
-    fishes = fishes.filter(f=>{
-      const out = f.x<-70 || f.x>W+70;
-      if(out && f.state!=='caught'){ if(activeBite && activeBite.fishId===f.id) activeBite=null; return false; }
-      return true;
-    });
-    while(fishes.length<4) spawnFish();
+    const now = performance.now();
 
-    if(!activeBite && handVisible){
-      const hx=hook.x*W, hy=hook.y*H;
-      for(const f of fishes){
-        if(f.state!=='swim') continue;
-        const d = Math.hypot(hx-f.x, hy-f.y);
-        if(d < f.size+14){
-          f.state='biting';
-          activeBite = {fishId:f.id, startTime:performance.now(), window: f.special?550:900};
-          statusEl.textContent = f.special ? '✨ 반짝! 빨리 핀치!' : '😲 물었다! 핀치로 낚아채!';
-          break;
+    if(gameState==='idle'){
+      if(roundEnding){ endRound(); return; }
+      if(now >= nextBiteAt){
+        gameState='biting';
+        biteStart = now;
+        wristHist = [];
+        playBiteSound();
+        statusEl.textContent = '😲 입질이다! 손을 위로 확 당겨!';
+      }
+    } else if(gameState==='biting'){
+      if(now - biteStart > BITE_WINDOW){
+        gameState='idle';
+        playMissSound();
+        statusEl.textContent = '아쉽다, 줄이 잠잠해졌어...';
+        nextBiteAt = now + 1000 + Math.random()*2000;
+      }
+    } else if(gameState==='revealing'){
+      if(revealPhase==='grow'){
+        const t = Math.min(1, (now-growStart)/GROW_DURATION);
+        if(t>=1){
+          revealPhase='impact';
+          impactStart = now;
+          vibrate(90);
+          playImpactSound();
+        }
+      } else if(revealPhase==='impact'){
+        const t = Math.min(1, (now-impactStart)/IMPACT_DURATION);
+        if(t>=1){
+          revealPhase='done';
+          gameState='choosing';
+          choiceResolved=false;
+          choiceRow.style.display='flex';
+          wristHist=[];
+          statusEl.textContent = '스와이프(왼쪽=놓아주기, 오른쪽=담아두기) 또는 버튼을 눌러줘.';
         }
       }
     }
-    if(activeBite){
-      const fish = fishes.find(f=>f.id===activeBite.fishId);
-      const elapsed = performance.now()-activeBite.startTime;
-      if(!fish || elapsed>activeBite.window){
-        if(fish){ fish.state='swim'; playMissSound(); }
-        activeBite=null;
-        statusEl.textContent='아쉽다, 놓쳤어! 다음 기회에.';
+
+    popups.forEach(p=>{ p.y -= 26*dt; p.life -= dt*0.8; });
+    popups = popups.filter(p=>p.life>0);
+  }
+
+  // ---------- 드로우 ----------
+  function drawWell(){
+    const {cx,cy,r} = wellGeom();
+    // 우물 테두리(돌)
+    const rimGrad = ctx.createRadialGradient(cx,cy,r*0.7,cx,cy,r*1.18);
+    rimGrad.addColorStop(0,'#4a4034'); rimGrad.addColorStop(1,'#241f19');
+    ctx.fillStyle = rimGrad;
+    ctx.beginPath(); ctx.arc(cx,cy,r*1.18,0,Math.PI*2); ctx.fill();
+    // 물
+    const waterGrad = ctx.createRadialGradient(cx,cy,4,cx,cy,r);
+    waterGrad.addColorStop(0,'#123a5c'); waterGrad.addColorStop(1,'#020810');
+    ctx.fillStyle = waterGrad;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    // 잔물결
+    ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1.5;
+    for(let i=1;i<=3;i++){ ctx.beginPath(); ctx.arc(cx,cy,r*(0.3*i),0,Math.PI*2); ctx.stroke(); }
+  }
+
+  function drawLine(){
+    const {cx,cy,r} = wellGeom();
+    const anchorX = cx, anchorY = 0;
+    let bobX = cx, bobY = cy - r*0.05;
+    if(gameState==='biting'){
+      const t = (performance.now()-biteStart)/1000;
+      const amp = Math.min(14, 4 + t*18);
+      bobX += Math.sin(t*40)*amp;
+      bobY += Math.cos(t*33)*amp*0.35;
+    } else if(gameState==='idle'){
+      const t = performance.now()/1000;
+      bobY += Math.sin(t*1.4)*3;
+    }
+    ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(anchorX,anchorY); ctx.lineTo(bobX,bobY); ctx.stroke();
+    ctx.fillStyle = gameState==='biting' ? '#ff5f6d' : '#eaf6ff';
+    ctx.beginPath(); ctx.arc(bobX,bobY,7,0,Math.PI*2); ctx.fill();
+    if(gameState==='biting'){
+      ctx.fillStyle='#fff'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('!', bobX, bobY-16);
+    }
+  }
+
+  function clippedImage(img, x, y, size){
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x,y,size,0,Math.PI*2); ctx.closePath(); ctx.clip();
+    if(img.complete && img.naturalWidth>0){
+      ctx.drawImage(img, x-size, y-size, size*2, size*2);
+    } else {
+      ctx.fillStyle='#2a3a55'; ctx.fillRect(x-size,y-size,size*2,size*2);
+    }
+    ctx.restore();
+  }
+
+  function clippedImageOrigin(img, size){
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0,0,size,0,Math.PI*2); ctx.closePath(); ctx.clip();
+    if(img.complete && img.naturalWidth>0){
+      ctx.drawImage(img, -size, -size, size*2, size*2);
+    } else {
+      ctx.fillStyle='#2a3a55'; ctx.fillRect(-size,-size,size*2,size*2);
+    }
+    ctx.restore();
+  }
+
+  function drawReveal(){
+    const {cx,cy,r} = wellGeom();
+    const fullSize = r*0.62;
+    const img = friendImgs[currentResultIdx];
+
+    let t, rot, sc, flashAlpha=0;
+    if(revealPhase==='grow'){
+      t = Math.min(1, (performance.now()-growStart)/GROW_DURATION);
+      rot = TOTAL_TURNS*2*Math.PI*easeOutCubic(t);
+      sc = 0.1 + 0.9*easeOutBack(t);
+    } else {
+      t = 1; rot = 0; sc = 1;
+      const it = Math.min(1, (performance.now()-impactStart)/IMPACT_DURATION);
+      flashAlpha = 1-it;
+    }
+    const size = fullSize*Math.max(0.05, sc);
+
+    // 후광 (커질수록 진해짐)
+    const haloA = 0.5*Math.min(1, t*1.4);
+    const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,size*1.7);
+    grad.addColorStop(0, `rgba(255,209,102,${haloA})`);
+    grad.addColorStop(1, 'rgba(255,209,102,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(cx,cy,size*1.7,0,Math.PI*2); ctx.fill();
+
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(rot);
+    clippedImageOrigin(img, size);
+    ctx.strokeStyle='rgba(255,209,102,.95)'; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(0,0,size,0,Math.PI*2); ctx.stroke();
+    ctx.restore();
+
+    if(revealPhase==='impact' && flashAlpha>0){
+      ctx.save();
+      ctx.globalAlpha = flashAlpha*0.8;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(cx,cy,fullSize*1.5,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      if(flashAlpha>0.5){
+        ctx.save();
+        ctx.globalAlpha = flashAlpha;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 30px sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText('따단!', cx, cy - fullSize - 18);
+        ctx.restore();
       }
     }
-    popups.forEach(p=>{ p.y -= 30*dt; p.life -= dt*0.9; });
-    popups = popups.filter(p=>p.life>0);
-    halos.forEach(h=>{ h.life -= dt*1.6; });
-    halos = halos.filter(h=>h.life>0);
   }
-
-  function drawFish(f){
-    const img = friendImgs[f.imgIdx];
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(f.x,f.y,f.size,0,Math.PI*2);
-    ctx.closePath();
-    ctx.clip();
-    if(img.complete && img.naturalWidth>0){
-      ctx.drawImage(img, f.x-f.size, f.y-f.size, f.size*2, f.size*2);
-    } else {
-      ctx.fillStyle = '#2a3a55';
-      ctx.fillRect(f.x-f.size, f.y-f.size, f.size*2, f.size*2);
-    }
-    ctx.restore();
-
-    if(f.special){
-      ctx.strokeStyle = 'rgba(255,209,102,.9)';
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(f.x,f.y,f.size+4,0,Math.PI*2); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,209,102,.35)';
-      ctx.lineWidth = 7;
-      ctx.beginPath(); ctx.arc(f.x,f.y,f.size+9,0,Math.PI*2); ctx.stroke();
-    } else {
-      ctx.strokeStyle = f.state==='biting' ? '#ff5f6d' : 'rgba(255,255,255,.7)';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(f.x,f.y,f.size,0,Math.PI*2); ctx.stroke();
-    }
-
-    if(f.state==='biting'){
-      ctx.fillStyle='#fff';
-      ctx.font='bold 22px sans-serif';
-      ctx.textAlign='center';
-      ctx.fillText('!', f.x, f.y-f.size-14);
-    }
-  }
-
-  function drawHalo(h){
-    const p = 1-h.life;
-    const r = f_lerp(h.special ? 8:8, h.special?70:50, p);
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, h.life);
-    const grad = ctx.createRadialGradient(h.x,h.y,0,h.x,h.y,r);
-    if(h.special){
-      grad.addColorStop(0,'rgba(255,209,102,.55)');
-      grad.addColorStop(1,'rgba(255,209,102,0)');
-    } else {
-      grad.addColorStop(0,'rgba(94,224,255,.5)');
-      grad.addColorStop(1,'rgba(94,224,255,0)');
-    }
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(h.x,h.y,r,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-  function f_lerp(a,b,t){ return a+(b-a)*t; }
 
   function draw(){
     ctx.clearRect(0,0,W,H);
-    const skyGrad = ctx.createLinearGradient(0,0,0,waterTop());
-    skyGrad.addColorStop(0,'#0a2647'); skyGrad.addColorStop(1,'#123a63');
-    ctx.fillStyle = skyGrad; ctx.fillRect(0,0,W,waterTop());
-    const waterGrad = ctx.createLinearGradient(0,waterTop(),0,H);
-    waterGrad.addColorStop(0,'#0e3a63'); waterGrad.addColorStop(1,'#031425');
-    ctx.fillStyle = waterGrad; ctx.fillRect(0,waterTop(),W,H-waterTop());
-    ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(0,waterTop()); ctx.lineTo(W,waterTop()); ctx.stroke();
-
-    halos.forEach(drawHalo);
-    fishes.forEach(drawFish);
-
-    if(handVisible){
-      const hx=hook.x*W, hy=hook.y*H;
-      ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.moveTo(hx,0); ctx.lineTo(hx,hy); ctx.stroke();
-      ctx.fillStyle = activeBite ? '#ff5f6d' : '#eaf6ff';
-      ctx.beginPath(); ctx.arc(hx,hy,8,0,Math.PI*2); ctx.fill();
+    drawWell();
+    if(gameState==='revealing' || gameState==='choosing'){
+      drawReveal();
+    } else {
+      drawLine();
     }
-
     popups.forEach(p=>{
       ctx.globalAlpha = Math.max(0,p.life);
-      ctx.fillStyle = '#ffd166';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.textAlign='center';
+      ctx.fillStyle = '#ffd166'; ctx.font='bold 18px sans-serif'; ctx.textAlign='center';
       ctx.fillText(p.text, p.x, p.y);
       ctx.globalAlpha = 1;
     });
