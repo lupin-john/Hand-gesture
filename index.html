@@ -3,197 +3,100 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>손짓 제어 스튜디오</title>
+<title>손맛 낚시 🎣</title>
 <style>
   :root{
-    --bg:#0f1220;
-    --panel:#171b2e;
-    --accent:#6ee7ff;
-    --accent2:#ff8fd6;
-    --text:#eef2ff;
-    --dim:#8891b0;
+    --bg:#061428;
+    --panel:#0c223f;
+    --accent:#5ee0ff;
+    --gold:#ffd166;
+    --text:#eaf6ff;
+    --dim:#7fa3c4;
   }
   *{box-sizing:border-box;}
   html,body{
     margin:0; padding:0; background:var(--bg); color:var(--text);
-    font-family: "Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
     min-height:100vh;
   }
-  #app{
-    max-width:980px; margin:0 auto; padding:16px 16px 40px;
-  }
-  header{
-    text-align:center; padding:14px 0 10px;
-  }
+  #app{ max-width:900px; margin:0 auto; padding:16px; }
+  header{ text-align:center; padding:10px 0; }
   header h1{
-    margin:0 0 6px; font-size:22px;
-    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    margin:0 0 6px; font-size:24px;
+    background:linear-gradient(90deg,var(--accent),var(--gold));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   header p{ margin:0; color:var(--dim); font-size:13px; }
 
-  .modes{
-    display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:14px 0;
-  }
-  .modes button{
-    background:var(--panel); color:var(--text); border:1px solid #2a2f4a;
-    padding:10px 16px; border-radius:999px; font-size:14px; cursor:pointer;
-    transition:all .15s;
-  }
-  .modes button.active{
-    background:linear-gradient(90deg,var(--accent),var(--accent2));
-    color:#0f1220; font-weight:700; border-color:transparent;
-  }
-
   .stage{
-    position:relative; width:100%; aspect-ratio:4/3; max-height:70vh;
+    position:relative; width:100%; aspect-ratio:4/3; max-height:72vh;
     background:#000; border-radius:16px; overflow:hidden;
-    border:1px solid #2a2f4a; margin:0 auto;
+    border:1px solid #133a5e; margin:14px auto 0;
   }
-  #video{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    transform:scaleX(-1);
+  #video{ display:none; }
+  #game{ position:absolute; inset:0; width:100%; height:100%; }
+  #camPreview{
+    position:absolute; bottom:10px; right:10px; width:110px; height:82px;
+    border-radius:10px; overflow:hidden; border:2px solid var(--accent);
+    opacity:.9; box-shadow:0 0 12px rgba(94,224,255,.4);
   }
-  #overlay, #drawCanvas{
-    position:absolute; inset:0; width:100%; height:100%;
+  #camPreview video{ display:block; width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+
+  #hud{
+    position:absolute; top:10px; left:10px; right:10px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:14px; font-weight:700; pointer-events:none; text-shadow:0 1px 4px rgba(0,0,0,.6);
   }
-  #dimOverlay{
-    position:absolute; inset:0; background:#000; opacity:0; pointer-events:none;
-    transition:opacity .05s linear;
-  }
-  #camHint{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    text-align:center; color:var(--dim); font-size:14px; padding:20px;
+  #hud .chip{
+    background:rgba(6,20,40,.55); padding:6px 12px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.15);
   }
 
-  .panel{
-    background:var(--panel); border:1px solid #2a2f4a; border-radius:14px;
-    padding:14px 16px; margin-top:14px;
+  #overlayMsg{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; background:rgba(6,20,40,.78); gap:14px; padding:20px;
   }
-  .panel h2{ margin:0 0 8px; font-size:15px; color:var(--accent); }
-  .row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .row + .row{ margin-top:10px; }
-
-  .meter{
-    height:10px; border-radius:999px; background:#0f1220; overflow:hidden;
-    border:1px solid #2a2f4a; flex:1; min-width:140px;
-  }
-  .meter > div{
-    height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2));
-    width:0%;
-  }
+  #overlayMsg h2{ margin:0; font-size:22px; }
+  #overlayMsg p{ margin:0; color:var(--dim); font-size:14px; max-width:360px; }
 
   .btn{
-    background:#232849; color:var(--text); border:1px solid #34395c;
-    padding:8px 14px; border-radius:10px; font-size:13px; cursor:pointer;
+    background:linear-gradient(90deg,var(--accent),var(--gold)); color:#06172b; font-weight:800;
+    border:none; padding:11px 22px; border-radius:12px; font-size:15px; cursor:pointer;
   }
-  .btn:hover{ background:#2c3260; }
-  .btn.primary{
-    background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#0f1220; font-weight:700; border:none;
+  .btn.secondary{
+    background:#0c223f; color:var(--text); border:1px solid #1c4a76; font-weight:600;
   }
 
   #status{
     margin-top:10px; text-align:center; font-size:13px; color:var(--dim); min-height:18px;
-  }
-
-  /* 슬라이드 */
-  #slideBox{
-    position:relative; background:#0f1220; border:1px solid #2a2f4a; border-radius:12px;
-    padding:24px; text-align:center; min-height:120px; display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-  }
-  #slideBox .num{ position:absolute; top:10px; right:14px; font-size:12px; color:var(--dim); }
-  #slideBox h3{ margin:0 0 6px; font-size:18px; }
-  #slideBox p{ margin:0; color:var(--dim); font-size:13px; }
-
-  input[type=color]{
-    width:36px; height:32px; border:none; background:none; cursor:pointer; padding:0;
-  }
-  input[type=range]{ accent-color:var(--accent); }
-
-  .badge{
-    font-size:12px; padding:3px 10px; border-radius:999px; background:#0f1220;
-    border:1px solid #2a2f4a; color:var(--dim);
   }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <h1>✋ 손짓 제어 스튜디오</h1>
-    <p>웹캠으로 손을 인식해서 프레젠테이션 넘기기 / 허공 그림 그리기 / 핀치로 볼륨·밝기 조절을 해보는 데모</p>
+    <h1>🎣 손맛 낚시</h1>
+    <p>검지 손가락으로 물고기를 노렸다가, 물면(!) 엄지-검지를 재빨리 핀치해서 낚아채세요</p>
   </header>
-
-  <div class="modes">
-    <button data-mode="swipe" class="active">📽️ 스와이프 리모컨</button>
-    <button data-mode="draw">🎨 에어 드로잉</button>
-    <button data-mode="pinch">🔊 핀치 볼륨·밝기</button>
-  </div>
 
   <div class="stage" id="stage">
     <video id="video" playsinline muted></video>
-    <canvas id="overlay"></canvas>
-    <canvas id="drawCanvas"></canvas>
-    <div id="dimOverlay"></div>
-    <div id="camHint">카메라를 시작해주세요 👇</div>
+    <canvas id="game"></canvas>
+    <div id="camPreview"><video id="miniVideo" playsinline muted></video></div>
+
+    <div id="hud" style="display:none;">
+      <span class="chip">🐟 <span id="scoreVal">0</span></span>
+      <span class="chip">⏱ <span id="timeVal">60</span>초</span>
+    </div>
+
+    <div id="overlayMsg">
+      <h2>카메라를 켜고 낚시를 시작해봐</h2>
+      <p>손이 화면에 잘 보이게 카메라를 향해주세요. 검지 끝이 낚싯바늘이 돼요.</p>
+      <button class="btn" id="startBtn">카메라 켜고 시작</button>
+    </div>
   </div>
 
-  <div class="row" style="justify-content:center; margin-top:12px;">
-    <button class="btn primary" id="startCam">카메라 시작</button>
-    <span class="badge" id="handBadge">손 인식 대기 중</span>
-  </div>
-
-  <!-- 모드별 패널 -->
-  <div class="panel" id="panel-swipe">
-    <h2>프레젠테이션 리모컨</h2>
-    <div id="slideBox">
-      <span class="num" id="slideNum">1 / 5</span>
-      <h3 id="slideTitle">시작하기</h3>
-      <p id="slideDesc">손을 화면 오른쪽으로 스윽 움직이면 다음 장, 왼쪽으로 움직이면 이전 장으로 넘어가요.</p>
-    </div>
-    <div class="row" style="justify-content:center; margin-top:10px;">
-      <button class="btn" id="prevSlide">◀ 이전</button>
-      <button class="btn" id="nextSlide">다음 ▶</button>
-    </div>
-    <p style="color:var(--dim); font-size:12px; margin-top:8px;">
-      ※ 이 데모는 내장된 가짜 슬라이드예요. 실제 구글 슬라이드/PPT 화면을 넘기려면 브라우저 확장 프로그램이나 별도 프로그램(Electron 등)으로 키보드 방향키를 흉내내야 해요 — 웹페이지 JS만으로는 다른 창을 조작할 수 없어요.
-    </p>
-  </div>
-
-  <div class="panel" id="panel-draw" style="display:none;">
-    <h2>에어 드로잉</h2>
-    <div class="row">
-      <label>색상 <input type="color" id="penColor" value="#6ee7ff"></label>
-      <label>굵기 <input type="range" id="penWidth" min="2" max="20" value="6"></label>
-      <button class="btn" id="clearCanvas">지우기</button>
-    </div>
-    <p style="color:var(--dim); font-size:12px; margin-top:10px;">
-      검지 손가락만 편 채로(포인팅) 움직이면 그림이 그려지고, 손을 펴거나 주먹을 쥐면 펜이 떨어져요(그리기 멈춤).
-    </p>
-  </div>
-
-  <div class="panel" id="panel-pinch" style="display:none;">
-    <h2>핀치로 볼륨 · 밝기 조절</h2>
-    <div class="row">
-      <button class="btn" id="toggleTone">🔈 소리 켜기</button>
-      <span class="badge">엄지-검지 거리로 조절</span>
-    </div>
-    <div class="row">
-      <span style="width:60px;">볼륨</span>
-      <div class="meter"><div id="volMeter"></div></div>
-      <span id="volPct" style="width:40px; text-align:right;">0%</span>
-    </div>
-    <div class="row">
-      <span style="width:60px;">밝기</span>
-      <div class="meter"><div id="brightMeter"></div></div>
-      <span id="brightPct" style="width:40px; text-align:right;">100%</span>
-    </div>
-    <p style="color:var(--dim); font-size:12px; margin-top:10px;">
-      엄지와 검지를 붙였다 뗐다 하면서 거리를 조절해보세요. 화면 밝기는 실제 화면이 아니라 검은 막을 겹쳐서 흉내낸 거예요(브라우저는 실제 모니터 밝기를 제어할 권한이 없어요).
-    </p>
-  </div>
-
-  <div id="status">카메라를 켜면 여기에 인식 상태가 표시돼요.</div>
+  <div id="status">카메라를 켜면 안내가 여기 표시돼요.</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
@@ -201,244 +104,315 @@
 <script>
 (function(){
   const video = document.getElementById('video');
-  const overlay = document.getElementById('overlay');
-  const drawCanvas = document.getElementById('drawCanvas');
-  const dimOverlay = document.getElementById('dimOverlay');
-  const camHint = document.getElementById('camHint');
+  const miniVideo = document.getElementById('miniVideo');
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
   const statusEl = document.getElementById('status');
-  const handBadge = document.getElementById('handBadge');
-  const octx = overlay.getContext('2d');
-  const dctx = drawCanvas.getContext('2d');
+  const overlayMsg = document.getElementById('overlayMsg');
+  const hud = document.getElementById('hud');
+  const scoreVal = document.getElementById('scoreVal');
+  const timeVal = document.getElementById('timeVal');
 
-  let currentMode = 'swipe';
-  let camera = null;
-  let handsReady = false;
+  let W = 0, H = 0;
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    W = canvas.width = rect.width;
+    H = canvas.height = rect.height;
+  }
+  window.addEventListener('resize', resize);
 
-  // ---------- 모드 전환 ----------
-  document.querySelectorAll('.modes button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.modes button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      currentMode = btn.dataset.mode;
-      ['swipe','draw','pinch'].forEach(m=>{
-        document.getElementById('panel-'+m).style.display = (m===currentMode)?'block':'none';
-      });
-      lastPoint = null; // 모드 바뀌면 펜 초기화
-      swipeHistory = [];
-    });
-  });
+  function mx(x){ return 1 - x; } // 미러 보정
 
-  // ---------- 캔버스 크기 맞추기 ----------
-  function resizeCanvases(){
-    const rect = video.getBoundingClientRect();
-    [overlay, drawCanvas].forEach(c=>{
-      c.width = rect.width;
-      c.height = rect.height;
+  // ---------- 게임 상태 ----------
+  let score = 0;
+  let timeLeft = 60;
+  let running = false;
+  let fishes = [];
+  let hook = { x: 0.5, y: 0.5 };
+  let activeBite = null; // { fishId, startTime, window }
+  let lastPinch = false;
+  let bubbleTexts = []; // 점수 팝업 텍스트 애니메이션
+  let timerId = null;
+  let nextFishId = 1;
+
+  function waterTop(){ return H * 0.22; }
+
+  function spawnFish(){
+    const golden = Math.random() < 0.12;
+    const y = waterTop() + Math.random() * (H - waterTop() - 40) + 20;
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const baseSpeed = 0.6 + Math.min(score, 20) * 0.03;
+    fishes.push({
+      id: nextFishId++,
+      x: dir === 1 ? -30 : W + 30,
+      y,
+      dir,
+      speed: (baseSpeed + Math.random()*0.6) * dir,
+      size: golden ? 16 : (18 + Math.random()*10),
+      golden,
+      state: 'swim' // swim | biting | caught | escaped
     });
   }
-  window.addEventListener('resize', resizeCanvases);
 
-  // ---------- 카메라 시작 ----------
-  document.getElementById('startCam').addEventListener('click', async ()=>{
+  function resetGame(){
+    score = 0; timeLeft = 60; fishes = []; activeBite = null; bubbleTexts = [];
+    scoreVal.textContent = '0';
+    timeVal.textContent = '60';
+    for(let i=0;i<4;i++) spawnFish();
+  }
+
+  function startRound(){
+    resetGame();
+    running = true;
+    hud.style.display = 'flex';
+    overlayMsg.style.display = 'none';
+    clearInterval(timerId);
+    timerId = setInterval(()=>{
+      timeLeft--;
+      timeVal.textContent = timeLeft;
+      if(timeLeft <= 0){
+        endRound();
+      }
+    }, 1000);
+  }
+
+  function endRound(){
+    running = false;
+    clearInterval(timerId);
+    overlayMsg.innerHTML = `
+      <h2>🎣 종료! 이번 판 ${score}마리</h2>
+      <p>다시 도전해서 기록을 깨보자.</p>
+      <button class="btn" id="restartBtn">다시 시작</button>
+    `;
+    overlayMsg.style.display = 'flex';
+    document.getElementById('restartBtn').addEventListener('click', startRound);
+  }
+
+  document.getElementById('startBtn').addEventListener('click', async ()=>{
     try{
       const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user' }, audio:false });
       video.srcObject = stream;
+      miniVideo.srcObject = stream;
       await video.play();
-      camHint.style.display = 'none';
-      resizeCanvases();
-      statusEl.textContent = '카메라 연결됨. 손을 화면에 비춰보세요.';
+      await miniVideo.play();
+      resize();
+      statusEl.textContent = '카메라 연결됨! 손을 비춰서 물고기를 노려봐.';
       startHandTracking();
+      startRound();
     }catch(err){
-      statusEl.textContent = '카메라를 열 수 없어요: ' + err.message + ' (권한을 허용했는지 확인해주세요)';
+      statusEl.textContent = '카메라를 열 수 없어요: ' + err.message;
     }
   });
 
   // ---------- MediaPipe Hands ----------
-  const hands = new Hands({ locateFile: (f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${f}` });
-  hands.setOptions({
-    maxNumHands: 1,
-    modelComplexity: 1,
-    minDetectionConfidence: 0.6,
-    minTrackingConfidence: 0.6
-  });
+  const hands = new Hands({ locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${f}` });
+  hands.setOptions({ maxNumHands:1, modelComplexity:1, minDetectionConfidence:0.6, minTrackingConfidence:0.6 });
   hands.onResults(onResults);
 
+  let camera = null;
   function startHandTracking(){
-    if (camera) return;
+    if(camera) return;
     camera = new Camera(video, {
       onFrame: async ()=>{ await hands.send({image: video}); },
-      width: 640, height: 480
+      width:640, height:480
     });
     camera.start();
   }
 
-  function mx(x){ return (1 - x); } // 미러 보정된 x (0~1)
-
+  let handVisible = false;
   function onResults(results){
-    resizeCanvases();
-    octx.clearRect(0,0,overlay.width, overlay.height);
-
     const hasHand = results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
-    handBadge.textContent = hasHand ? '✋ 손 인식됨' : '손 인식 대기 중';
-
-    if(!hasHand){
-      lastPoint = null;
-      return;
-    }
+    handVisible = hasHand;
+    if(!hasHand) return;
     const lm = results.multiHandLandmarks[0];
+    const indexTip = lm[8];
+    const thumbTip = lm[4];
 
-    // 관절 점 그리기 (참고용, 가볍게)
-    octx.fillStyle = '#6ee7ff';
-    lm.forEach(p=>{
-      octx.beginPath();
-      octx.arc(mx(p.x)*overlay.width, p.y*overlay.height, 3, 0, Math.PI*2);
-      octx.fill();
+    hook.x = mx(indexTip.x);
+    hook.y = indexTip.y;
+
+    const dx = mx(thumbTip.x) - mx(indexTip.x);
+    const dy = thumbTip.y - indexTip.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const pinchedNow = dist < 0.06;
+
+    // 핀치 "막 눌린 순간"만 캐치 시도로 인정
+    if(pinchedNow && !lastPinch){
+      tryCatch();
+    }
+    lastPinch = pinchedNow;
+  }
+
+  function tryCatch(){
+    if(!activeBite) return;
+    const fish = fishes.find(f => f.id === activeBite.fishId);
+    if(!fish || fish.state !== 'biting') return;
+    const elapsed = performance.now() - activeBite.startTime;
+    if(elapsed <= activeBite.window){
+      fish.state = 'caught';
+      const gain = fish.golden ? 3 : 1;
+      score += gain;
+      scoreVal.textContent = score;
+      bubbleTexts.push({
+        x: fish.x, y: fish.y, life: 1,
+        text: fish.golden ? `✨금붕어! +${gain}` : `잡았다! +${gain}`
+      });
+      statusEl.textContent = fish.golden ? '✨ 금붕어 낚시 성공! 반응 최고!' : '🐟 낚시 성공!';
+      activeBite = null;
+      setTimeout(()=>{
+        fishes = fishes.filter(f => f.id !== fish.id);
+        spawnFish();
+      }, 250);
+    }
+  }
+
+  // ---------- 게임 루프 ----------
+  function update(dt){
+    if(!running) return;
+
+    // 물고기 이동
+    fishes.forEach(f=>{
+      if(f.state === 'swim' || f.state === 'biting'){
+        f.x += f.speed * dt * 60;
+      }
     });
 
-    if(currentMode === 'swipe') handleSwipe(lm);
-    else if(currentMode === 'draw') handleDraw(lm);
-    else if(currentMode === 'pinch') handlePinch(lm);
-  }
-
-  // ================= 모드 1: 스와이프 리모컨 =================
-  const slides = [
-    {t:'시작하기', d:'손을 오른쪽으로 스윽 움직이면 다음 장, 왼쪽으로 움직이면 이전 장이에요.'},
-    {t:'아이디어', d:'제스처 인식은 MediaPipe Hands로 브라우저에서 바로 돌아가요.'},
-    {t:'좌표', d:'화면이 좌우 반전(미러)돼 있어서 x좌표를 뒤집어서 계산했어요.'},
-    {t:'쿨다운', d:'너무 자주 넘어가지 않도록 스와이프 사이에 짧은 대기시간을 뒀어요.'},
-    {t:'끝', d:'다음 단계로 실제 프레젠테이션 앱 연동도 도전해볼 수 있어요!'}
-  ];
-  let slideIdx = 0;
-  function renderSlide(){
-    document.getElementById('slideNum').textContent = `${slideIdx+1} / ${slides.length}`;
-    document.getElementById('slideTitle').textContent = slides[slideIdx].t;
-    document.getElementById('slideDesc').textContent = slides[slideIdx].d;
-  }
-  document.getElementById('nextSlide').addEventListener('click', ()=>{ slideIdx=(slideIdx+1)%slides.length; renderSlide(); });
-  document.getElementById('prevSlide').addEventListener('click', ()=>{ slideIdx=(slideIdx-1+slides.length)%slides.length; renderSlide(); });
-  renderSlide();
-
-  let swipeHistory = [];
-  let lastSwipeTime = 0;
-  function handleSwipe(lm){
-    const wrist = lm[0];
-    const x = mx(wrist.x);
-    const now = performance.now();
-    swipeHistory.push({x, t: now});
-    swipeHistory = swipeHistory.filter(p => now - p.t < 450);
-
-    if(swipeHistory.length < 2) return;
-    const first = swipeHistory[0];
-    const dx = x - first.x;
-
-    if(now - lastSwipeTime < 600){
-      statusEl.textContent = `쿨다운 중... (이동량 ${dx.toFixed(2)})`;
-      return;
-    }
-
-    const THRESHOLD = 0.15; // 이게 너무 예민하거나 둔하면 이 숫자만 조절하면 돼
-    if(dx > THRESHOLD){
-      slideIdx = (slideIdx+1) % slides.length;
-      renderSlide();
-      lastSwipeTime = now;
-      swipeHistory = [];
-      statusEl.textContent = '➡️ 다음 슬라이드로 이동! (이동량 '+dx.toFixed(2)+')';
-    } else if(dx < -THRESHOLD){
-      slideIdx = (slideIdx-1+slides.length) % slides.length;
-      renderSlide();
-      lastSwipeTime = now;
-      swipeHistory = [];
-      statusEl.textContent = '⬅️ 이전 슬라이드로 이동! (이동량 '+dx.toFixed(2)+')';
-    } else {
-      statusEl.textContent = `손 이동량: ${dx.toFixed(2)} (±${THRESHOLD} 넘으면 넘어감)`;
-    }
-  }
-
-  // ================= 모드 2: 에어 드로잉 =================
-  let lastPoint = null;
-  document.getElementById('clearCanvas').addEventListener('click', ()=>{
-    dctx.clearRect(0,0,drawCanvas.width, drawCanvas.height);
-  });
-
-  // tip과 MCP(손바닥 쪽 관절)를 비교 — PIP보다 기준점이 멀어서 더 안정적으로 판정됨
-  function fingerExtendedByMcp(lm, tipIdx, mcpIdx, margin){
-    return lm[tipIdx].y < lm[mcpIdx].y - margin;
-  }
-
-  function handleDraw(lm){
-    // 검지(8/5)만 확인, 중지(12/9)는 완전히 접혔는지만 참고 — 약지/새끼는 무시(사람마다 잘 안 접혀서 오히려 방해됨)
-    const indexUp = fingerExtendedByMcp(lm, 8, 5, 0.05);
-    const middleUp = fingerExtendedByMcp(lm, 12, 9, 0.03);
-
-    const pointing = indexUp && !middleUp;
-
-    if(pointing){
-      const x = mx(lm[8].x) * drawCanvas.width;
-      const y = lm[8].y * drawCanvas.height;
-      dctx.lineCap = 'round';
-      dctx.lineJoin = 'round';
-      dctx.strokeStyle = document.getElementById('penColor').value;
-      dctx.lineWidth = document.getElementById('penWidth').value;
-      if(lastPoint){
-        dctx.beginPath();
-        dctx.moveTo(lastPoint.x, lastPoint.y);
-        dctx.lineTo(x, y);
-        dctx.stroke();
+    // 화면 밖으로 완전히 나가면 도망 처리 후 리스폰
+    fishes = fishes.filter(f=>{
+      const out = f.x < -60 || f.x > W + 60;
+      if(out && f.state !== 'caught'){
+        if(activeBite && activeBite.fishId === f.id) activeBite = null;
+        return false;
       }
-      lastPoint = {x, y};
-      statusEl.textContent = '✏️ 그리는 중... (검지만 펴짐 인식됨)';
-    } else {
-      lastPoint = null;
-      statusEl.textContent = `펜 뗌 — 검지:${indexUp?'폄':'접힘'} 중지:${middleUp?'폄':'접힘'} (검지만 펴야 그려짐)`;
+      return f.state !== 'caught' ? true : true;
+    });
+    while(fishes.length < 4) spawnFish();
+
+    // 바늘-물고기 충돌 → 물기 시작
+    if(!activeBite && handVisible){
+      const hx = hook.x * W, hy = hook.y * H;
+      for(const f of fishes){
+        if(f.state !== 'swim') continue;
+        const d = Math.hypot(hx - f.x, hy - f.y);
+        if(d < f.size + 14){
+          f.state = 'biting';
+          activeBite = { fishId: f.id, startTime: performance.now(), window: f.golden ? 550 : 900 };
+          statusEl.textContent = f.golden ? '✨ 금붕어가 물었다! 빨리 핀치!' : '🐟 물었다! 핀치로 낚아채!';
+          break;
+        }
+      }
+    }
+
+    // 물기 시간 초과 → 도망
+    if(activeBite){
+      const fish = fishes.find(f=>f.id===activeBite.fishId);
+      const elapsed = performance.now() - activeBite.startTime;
+      if(!fish || elapsed > activeBite.window){
+        if(fish) fish.state = 'swim';
+        activeBite = null;
+        statusEl.textContent = '아쉽다, 놓쳤어! 다음 기회에.';
+      }
+    }
+
+    bubbleTexts.forEach(b=>{ b.y -= 30*dt; b.life -= dt*0.9; });
+    bubbleTexts = bubbleTexts.filter(b=>b.life>0);
+  }
+
+  function drawFish(f){
+    const bodyColor = f.golden ? '#ffd166' : (f.state==='biting' ? '#ff8fa3' : '#5ee0ff');
+    ctx.save();
+    ctx.translate(f.x, f.y);
+    if(f.dir < 0) ctx.scale(-1,1);
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.ellipse(0,0,f.size,f.size*0.6,0,0,Math.PI*2);
+    ctx.fill();
+    // 꼬리
+    ctx.beginPath();
+    ctx.moveTo(-f.size,0);
+    ctx.lineTo(-f.size-10,-8);
+    ctx.lineTo(-f.size-10,8);
+    ctx.closePath();
+    ctx.fill();
+    // 눈
+    ctx.fillStyle = '#06172b';
+    ctx.beginPath();
+    ctx.arc(f.size*0.45,-3,2.4,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    if(f.state === 'biting'){
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', f.x, f.y - f.size - 14);
     }
   }
 
-  // ================= 모드 3: 핀치 볼륨/밝기 =================
-  let audioCtx = null, oscillator = null, gainNode = null, toneOn = false;
-  document.getElementById('toggleTone').addEventListener('click', (e)=>{
-    if(!audioCtx){
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      oscillator = audioCtx.createOscillator();
-      gainNode = audioCtx.createGain();
-      gainNode.gain.value = 0;
-      oscillator.type = 'sine';
-      oscillator.frequency.value = 440;
-      oscillator.connect(gainNode).connect(audioCtx.destination);
-      oscillator.start();
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    // 하늘
+    const skyGrad = ctx.createLinearGradient(0,0,0,waterTop());
+    skyGrad.addColorStop(0,'#0a2647');
+    skyGrad.addColorStop(1,'#123a63');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0,0,W,waterTop());
+
+    // 물
+    const waterGrad = ctx.createLinearGradient(0,waterTop(),0,H);
+    waterGrad.addColorStop(0,'#0e3a63');
+    waterGrad.addColorStop(1,'#031425');
+    ctx.fillStyle = waterGrad;
+    ctx.fillRect(0,waterTop(),W,H-waterTop());
+
+    // 수면선
+    ctx.strokeStyle = 'rgba(255,255,255,.25)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, waterTop());
+    ctx.lineTo(W, waterTop());
+    ctx.stroke();
+
+    fishes.forEach(drawFish);
+
+    // 낚싯줄 + 바늘
+    if(handVisible){
+      const hx = hook.x*W, hy = hook.y*H;
+      ctx.strokeStyle = 'rgba(255,255,255,.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(hx, 0);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+
+      ctx.fillStyle = activeBite ? '#ff5f6d' : '#eaf6ff';
+      ctx.beginPath();
+      ctx.arc(hx, hy, 8, 0, Math.PI*2);
+      ctx.fill();
     }
-    toneOn = !toneOn;
-    if(toneOn){
-      audioCtx.resume();
-      e.target.textContent = '🔇 소리 끄기';
-    } else {
-      gainNode.gain.value = 0;
-      e.target.textContent = '🔈 소리 켜기';
-    }
-  });
 
-  function handlePinch(lm){
-    const thumb = lm[4], index = lm[8];
-    const dx = mx(thumb.x) - mx(index.x);
-    const dy = thumb.y - index.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-
-    // 대략 0.02(붙음) ~ 0.22(많이 벌림) 범위를 0~100%로 매핑
-    let pct = (dist - 0.02) / (0.22 - 0.02);
-    pct = Math.max(0, Math.min(1, pct));
-
-    document.getElementById('volMeter').style.width = (pct*100).toFixed(0)+'%';
-    document.getElementById('volPct').textContent = (pct*100).toFixed(0)+'%';
-    document.getElementById('brightMeter').style.width = (pct*100).toFixed(0)+'%';
-    document.getElementById('brightPct').textContent = (pct*100).toFixed(0)+'%';
-
-    dimOverlay.style.opacity = (1-pct)*0.85;
-
-    if(toneOn && gainNode){
-      gainNode.gain.value = pct * 0.15;
-    }
-    statusEl.textContent = `핀치 거리로 ${(pct*100).toFixed(0)}% 조절 중`;
+    // 점수 팝업
+    bubbleTexts.forEach(b=>{
+      ctx.globalAlpha = Math.max(0,b.life);
+      ctx.fillStyle = '#ffd166';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(b.text, b.x, b.y);
+      ctx.globalAlpha = 1;
+    });
   }
 
+  let lastT = performance.now();
+  function loop(now){
+    const dt = Math.min(0.05, (now - lastT)/1000);
+    lastT = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  resize();
+  requestAnimationFrame(loop);
 })();
 </script>
 </body>
