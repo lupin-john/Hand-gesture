@@ -325,26 +325,32 @@
     const x = mx(wrist.x);
     const now = performance.now();
     swipeHistory.push({x, t: now});
-    swipeHistory = swipeHistory.filter(p => now - p.t < 350);
+    swipeHistory = swipeHistory.filter(p => now - p.t < 450);
 
     if(swipeHistory.length < 2) return;
     const first = swipeHistory[0];
     const dx = x - first.x;
 
-    if(now - lastSwipeTime < 700) return; // 쿨다운
+    if(now - lastSwipeTime < 600){
+      statusEl.textContent = `쿨다운 중... (이동량 ${dx.toFixed(2)})`;
+      return;
+    }
 
-    if(dx > 0.28){
+    const THRESHOLD = 0.15; // 이게 너무 예민하거나 둔하면 이 숫자만 조절하면 돼
+    if(dx > THRESHOLD){
       slideIdx = (slideIdx+1) % slides.length;
       renderSlide();
       lastSwipeTime = now;
       swipeHistory = [];
-      statusEl.textContent = '➡️ 다음 슬라이드로 이동';
-    } else if(dx < -0.28){
+      statusEl.textContent = '➡️ 다음 슬라이드로 이동! (이동량 '+dx.toFixed(2)+')';
+    } else if(dx < -THRESHOLD){
       slideIdx = (slideIdx-1+slides.length) % slides.length;
       renderSlide();
       lastSwipeTime = now;
       swipeHistory = [];
-      statusEl.textContent = '⬅️ 이전 슬라이드로 이동';
+      statusEl.textContent = '⬅️ 이전 슬라이드로 이동! (이동량 '+dx.toFixed(2)+')';
+    } else {
+      statusEl.textContent = `손 이동량: ${dx.toFixed(2)} (±${THRESHOLD} 넘으면 넘어감)`;
     }
   }
 
@@ -354,22 +360,23 @@
     dctx.clearRect(0,0,drawCanvas.width, drawCanvas.height);
   });
 
-  function fingerExtended(lm, tipIdx, pipIdx){
-    return lm[tipIdx].y < lm[pipIdx].y - 0.02;
+  // tip과 MCP(손바닥 쪽 관절)를 비교 — PIP보다 기준점이 멀어서 더 안정적으로 판정됨
+  function fingerExtendedByMcp(lm, tipIdx, mcpIdx, margin){
+    return lm[tipIdx].y < lm[mcpIdx].y - margin;
   }
 
   function handleDraw(lm){
-    const indexUp = fingerExtended(lm, 8, 6);
-    const middleUp = fingerExtended(lm, 12, 10);
-    const ringUp = fingerExtended(lm, 16, 14);
-    const pinkyUp = fingerExtended(lm, 20, 18);
+    // 검지(8/5)만 확인, 중지(12/9)는 완전히 접혔는지만 참고 — 약지/새끼는 무시(사람마다 잘 안 접혀서 오히려 방해됨)
+    const indexUp = fingerExtendedByMcp(lm, 8, 5, 0.05);
+    const middleUp = fingerExtendedByMcp(lm, 12, 9, 0.03);
 
-    const pointing = indexUp && !middleUp && !ringUp && !pinkyUp;
+    const pointing = indexUp && !middleUp;
 
     if(pointing){
       const x = mx(lm[8].x) * drawCanvas.width;
       const y = lm[8].y * drawCanvas.height;
       dctx.lineCap = 'round';
+      dctx.lineJoin = 'round';
       dctx.strokeStyle = document.getElementById('penColor').value;
       dctx.lineWidth = document.getElementById('penWidth').value;
       if(lastPoint){
@@ -379,10 +386,10 @@
         dctx.stroke();
       }
       lastPoint = {x, y};
-      statusEl.textContent = '✏️ 그리는 중...';
+      statusEl.textContent = '✏️ 그리는 중... (검지만 펴짐 인식됨)';
     } else {
       lastPoint = null;
-      statusEl.textContent = pointing ? '' : '펜 뗌 (검지만 펴면 그려져요)';
+      statusEl.textContent = `펜 뗌 — 검지:${indexUp?'폄':'접힘'} 중지:${middleUp?'폄':'접힘'} (검지만 펴야 그려짐)`;
     }
   }
 
